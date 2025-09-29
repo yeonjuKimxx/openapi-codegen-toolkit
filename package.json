@@ -1,0 +1,36 @@
+{
+  "name": "@yeonjukimxx/openapi-codegen",
+  "version": "1.0.0",
+  "description": "OpenAPI 기반 TypeScript 코드 자동 생성 도구",
+  "main": "./scripts/generateApi.js",
+  "bin": {
+    "openapi-codegen": "./bin/cli.js"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "openapi",
+    "typescript",
+    "codegen",
+    "api",
+    "swagger"
+  ],
+  "author": "yeonjuKimxx",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
+    "openapi-typescript": "^7.4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yeonjuKimxx/openapi-codegen-toolkit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yeonjuKimxx/openapi-codegen-toolkit/issues"
+  },
+  "homepage": "https://github.com/yeonjuKimxx/openapi-codegen-toolkit#readme"
+}
