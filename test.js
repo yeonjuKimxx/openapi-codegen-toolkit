@@ -3,7 +3,7 @@
 /**
  * openapi-codegen-toolkit 테스트 스크립트
  *
- * event-stepin-ai의 api-generator.config.json을 사용하여
+ * event-stepin-ai의 openapi-codegen.config.json을 사용하여
  * 동일한 결과물이 생성되는지 테스트합니다.
  */
 
@@ -45,7 +45,7 @@ async function testToolkit() {
 		console.log('\n1️⃣ 설정 파일 로드 중...')
 		const configManager = new ConfigManager(EVENT_STEPIN_ROOT)
 		const config = configManager.loadConfig(
-			join(EVENT_STEPIN_ROOT, 'scripts/api/api-generator.config.json')
+			join(EVENT_STEPIN_ROOT, 'scripts/api/openapi-codegen.config.json')
 		)
 		console.log('✅ 설정 파일 로드 완료')
 		console.log(`   프로젝트: ${config.projectName}`)

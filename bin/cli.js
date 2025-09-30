@@ -30,7 +30,7 @@ program
 program
 	.command('generate')
 	.description('모든 서버의 API 코드 생성')
-	.option('-c, --config <path>', '설정 파일 경로', './api-generator.config.json')
+	.option('-c, --config <path>', '설정 파일 경로', './openapi-codegen.config.json')
 	.option('-s, --server <name>', '특정 서버만 생성')
 	.option('--steps <steps>', '특정 단계만 실행 (쉼표로 구분)')
 	.option('--dry-run', '실제 파일 생성 없이 시뮬레이션')
@@ -74,7 +74,7 @@ program
 program
 	.command('validate')
 	.description('설정 파일 유효성 검증')
-	.option('-c, --config <path>', '설정 파일 경로', './api-generator.config.json')
+	.option('-c, --config <path>', '설정 파일 경로', './openapi-codegen.config.json')
 	.action(async (options) => {
 		try {
 			console.log('🔍 설정 파일 검증 중...')

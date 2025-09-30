@@ -6,7 +6,7 @@ import { join } from 'path'
 /**
  * 설정 기반 로거 유틸리티
  *
- * api-generator.config.json의 logging 섹션을 기반으로
+ * openapi-codegen.config.json의 logging 섹션을 기반으로
  * 콘솔 로그 레벨과 형식을 제어합니다.
  */
 class Logger {
@@ -23,7 +23,7 @@ class Logger {
 	 */
 	loadLoggingConfig() {
 		try {
-			const configPath = join(process.cwd(), 'scripts/api/api-generator.config.json')
+			const configPath = join(process.cwd(), 'scripts/api/openapi-codegen.config.json')
 			const configContent = readFileSync(configPath, 'utf8')
 			const config = JSON.parse(configContent)
 			return config.logging || {}

@@ -25,7 +25,7 @@ import { existsSync } from 'fs'
  */
 export class PathResolver {
 	/**
-	 * @param {Object} config - api-generator.config.json의 전체 설정 객체
+	 * @param {Object} config - openapi-codegen.config.json의 전체 설정 객체
 	 * @param {string} projectRoot - 프로젝트 루트 경로 (기본: process.cwd())
 	 */
 	constructor(config, projectRoot = process.cwd()) {
@@ -316,7 +316,7 @@ export class PathResolver {
 	 * @returns {string} 설정 파일의 절대 경로
 	 */
 	getConfigPath() {
-		return join(this.projectRoot, 'scripts/api/api-generator.config.json')
+		return join(this.projectRoot, 'scripts/api/openapi-codegen.config.json')
 	}
 
 	/**

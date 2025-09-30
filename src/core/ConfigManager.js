@@ -3,7 +3,7 @@
 /**
  * ⚙️ ConfigManager - 설정 관리 유틸리티
  *
- * api-generator.config.json 파일을 로드, 검증, 병합하는 역할을 합니다.
+ * openapi-codegen.config.json 파일을 로드, 검증, 병합하는 역할을 합니다.
  * 프로젝트별 설정과 기본 설정을 병합하여 완전한 설정 객체를 제공합니다.
  *
  * @description
@@ -50,11 +50,11 @@ export class ConfigManager {
 		// 설정 파일 탐색 경로 목록
 		const possiblePaths = [
 			customPath,
-			join(this.projectRoot, 'scripts/api/api-generator.config.json'),
-			join(this.projectRoot, 'api-generator.config.json'),
-			join(this.projectRoot, '.api-generator.config.json'),
-			join(this.projectRoot, 'config/api-generator.json'),
-			join(this.projectRoot, '.config/api-generator.json'),
+			join(this.projectRoot, 'scripts/api/openapi-codegen.config.json'),
+			join(this.projectRoot, 'openapi-codegen.config.json'),
+			join(this.projectRoot, '.openapi-codegen.config.json'),
+			join(this.projectRoot, 'config/openapi-codegen.json'),
+			join(this.projectRoot, '.config/openapi-codegen.json'),
 		].filter(Boolean)
 
 		// 각 경로를 순회하며 설정 파일 찾기

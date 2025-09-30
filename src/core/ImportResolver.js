@@ -23,7 +23,7 @@ import { dirname, relative } from 'path'
  */
 export class ImportResolver {
 	/**
-	 * @param {Object} config - api-generator.config.json의 전체 설정 객체
+	 * @param {Object} config - openapi-codegen.config.json의 전체 설정 객체
 	 * @param {PathResolver} pathResolver - PathResolver 인스턴스 (선택사항)
 	 */
 	constructor(config, pathResolver = null) {
