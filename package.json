@@ -2,11 +2,18 @@
   "name": "@yeonjukimxx/openapi-codegen",
   "version": "1.0.0",
   "description": "OpenAPI 기반 TypeScript 코드 자동 생성 도구",
-  "main": "./scripts/generateApi.js",
+  "main": "./src/index.js",
   "bin": {
     "openapi-codegen": "./bin/cli.js"
   },
   "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./core/*": "./src/core/*.js",
+    "./generators/*": "./src/generators/*.js",
+    "./parsers/*": "./src/parsers/*.js",
+    "./utils/*": "./src/utils/*.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
