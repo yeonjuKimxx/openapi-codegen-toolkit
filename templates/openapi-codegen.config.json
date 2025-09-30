@@ -1,0 +1,222 @@
+{
+  "projectName": "stepin-website-tournament",
+  "projectType": "nextjs",
+  "fileGeneration": {
+    "serverInstances": "src/model/openAPI",
+    "serverInstancePattern": "{serverName}-server/instance.ts",
+    "domainTypes": "src/domains/{serverName}/types",
+    "apiEndpoints": "src/domains/{serverName}/api",
+    "files": {
+      "schema": "schema.d.ts",
+      "validated": "validated.ts",
+      "deepSchema": "deepSchema.ts",
+      "endpoint": "endpoint.ts",
+      "domainApi": "{tagName}API.ts"
+    }
+  },
+  "imports": {
+    "internal": {
+      "apiHandlers": "@/@shared/api/handlers/apiResponse",
+      "serverInstance": "@/model/openAPI/{serverName}-server/instance",
+      "schemaTypes": "@/domains/{serverName}/types/schema",
+      "validatedTypes": "@/domains/{serverName}/types/validated"
+    },
+    "external": {
+      "reactQuery": "@tanstack/react-query",
+      "toast": "react-toastify"
+    }
+  },
+  "serverSettings": {
+    "defaultEnvironment": "development",
+    "serverNameExtraction": {
+      "pattern": "{serverName}-server",
+      "removePattern": "-server"
+    }
+  },
+  "envVarConfig": {
+    "enabled": true,
+    "prefix": "NEXT_PUBLIC_STEPIN_",
+    "defaultDocsSuffix": "/docs-yaml",
+    "customDocsSuffix": {
+      "rank": "/docs/openapi.yaml"
+    }
+  },
+  "excludeServers": ["payment"],
+  "includeOnlyServers": [],
+  "featureFlags": {
+    "_comment": "각 생성 단계별 활성화/비활성화 설정 - 불필요한 파일 생성을 방지하여 빌드 시간 단축",
+    "_steps_order": "1.타입 → 2.태그 → 3.validated → 4.deepSchema → 5.엔드포인트 → 6.도메인API → 7.React Query",
+    "generateValidatedTypes": {
+      "enabled": true,
+      "_comment": "validated 타입 생성 - 대부분의 프로젝트에서 필요"
+    },
+    "generateDeepSchema": {
+      "enabled": true,
+      "_comment": "클라이언트용 복잡한 타입 생성 - 단순한 API만 사용하면 false로 설정"
+    },
+    "generateEndpoints": {
+      "enabled": true,
+      "_comment": "서버별 엔드포인트 파일 생성 - API 구조화에 필수"
+    },
+    "generateDomainAPI": {
+      "enabled": true,
+      "_comment": "도메인별 API 함수 생성 - 실제 API 호출 함수들"
+    },
+    "generateReactQueryHooks": {
+      "enabled": true,
+      "_comment": "React Query 훅 생성 - React 프로젝트가 아니거나 다른 상태관리 사용시 false"
+    }
+  },
+  "logging": {
+    "_comment": "스크립트 실행 시 콘솔 로그 레벨 설정 - 각 레벨별로 개별 토글",
+    "enabled": true,
+    "showTimestamp": false,
+    "showEmoji": true,
+    "levels": {
+      "_comment": "로그 레벨 설정 - 우선순위: all > 개별설정 > none",
+      "all": false,
+      "debug": false,
+      "info": true,
+      "success": true,
+      "warn": true,
+      "error": true,
+      "none": false
+    },
+    "_presets": {
+      "_comment": "빠른 설정을 위한 프리셋들",
+      "_usage": "all: true (모든 로그), none: true (로그 없음)",
+      "_priority": "all > none > 개별설정 순서",
+      "_conflict": "all과 none이 둘 다 true면 all이 승리"
+    },
+    "_examples": {
+      "_comment": "다양한 조합 예시들",
+      "_all_on": "모든 레벨을 true로 설정",
+      "_production": "warn, error만 true로 설정",
+      "_success_and_errors": "success, error만 true로 설정",
+      "_progress_only": "info, success만 true로 설정"
+    },
+    "colors": {
+      "_comment": "각 로그 레벨별 색상 및 이모지 설정",
+      "debug": { "emoji": "🔍", "color": "gray" },
+      "info": { "emoji": "📋", "color": "blue" },
+      "success": { "emoji": "✅", "color": "green" },
+      "warn": { "emoji": "⚠️", "color": "yellow" },
+      "error": { "emoji": "❌", "color": "red" }
+    },
+    "categories": {
+      "_comment": "특정 카테고리별 로그 레벨 세부 설정",
+      "server_detection": "info",
+      "type_generation": "info",
+      "file_creation": "info",
+      "api_analysis": "debug",
+      "schema_parsing": "debug"
+    }
+  },
+  "errorHandling": {
+    "_comment": "React Query 훅의 에러 처리 방식 설정 - 프로젝트별 에러 처리 전략에 맞춤",
+    "useToast": true,
+    "logErrors": false,
+    "successNotification": true,
+    "customErrorHandler": null,
+    "customSuccessHandler": null,
+    "customHandlers": {
+      "_comment": "커스텀 핸들러 고급 설정 - 함수명, import 경로, 파라미터 등을 정의",
+      "enabled": false,
+      "errorHandler": {
+        "functionName": "handleAPIError",
+        "importPath": "@/utils/errorHandler",
+        "parameters": ["error", "context"],
+        "async": false
+      },
+      "successHandler": {
+        "functionName": "handleAPISuccess",
+        "importPath": "@/utils/successHandler",
+        "parameters": ["result", "context"],
+        "async": false
+      },
+      "contextData": {
+        "_comment": "핸들러에 전달할 추가 컨텍스트 정보",
+        "includeEndpoint": true,
+        "includeTimestamp": true,
+        "includeUserId": false,
+        "customFields": {}
+      }
+    },
+    "toastMessages": {
+      "_comment": "toast 메시지 커스터마이징",
+      "queryError": "Query Error: {message}",
+      "mutationError": "Operation Error: {message}",
+      "mutationSuccess": "Operation completed successfully"
+    },
+    "_examples": {
+      "_comment": "다양한 에러 처리 조합 예시",
+      "_production": "useToast: false, logErrors: true (조용한 에러 처리)",
+      "_development": "useToast: true, logErrors: true (상세한 에러 정보)",
+      "_custom": "customErrorHandler: 'handleAPIError' (커스텀 핸들러)"
+    }
+  },
+  "codeGeneration": {
+    "_comment_functionNaming": "API 함수명 생성 규칙 - HTTP 메서드별 접두사 설정",
+    "_example_functionNaming": "GET /users → fetchUsers, POST /users → createUser",
+    "jsdoc": {
+      "_comment": "생성된 API 함수의 JSDoc 주석 설정 - 개발자 경험 향상을 위한 문서화",
+      "enabled": true,
+      "language": "ko",
+      "includeParams": true,
+      "includeReturns": true,
+      "includeExample": false,
+      "includeDescription": true,
+      "includeEndpoint": true,
+      "customDescriptions": {
+        "_comment": "특정 엔드포인트에 대한 커스텀 설명 - 자동 생성된 설명을 override",
+        "_example": "/auth/login → '사용자 로그인을 처리하는 API'",
+        "/auth/login": "사용자 로그인을 처리하는 API",
+        "/auth/logout": "사용자 로그아웃을 처리하는 API",
+        "/users/profile": "사용자 프로필 정보를 관리하는 API"
+      },
+      "templates": {
+        "_comment": "언어별 JSDoc 템플릿 설정",
+        "ko": {
+          "parameterDescription": "API 요청 파라미터",
+          "bodyDescription": "API 요청 본문 데이터",
+          "returnDescription": "API 응답 데이터",
+          "endpointPrefix": "엔드포인트:",
+          "methodDescriptions": {
+            "get": "조회",
+            "post": "등록",
+            "put": "전체 수정",
+            "patch": "수정",
+            "delete": "삭제"
+          }
+        },
+        "en": {
+          "parameterDescription": "API request parameters",
+          "bodyDescription": "API request body data",
+          "returnDescription": "API response data",
+          "endpointPrefix": "Endpoint:",
+          "methodDescriptions": {
+            "get": "Retrieve",
+            "post": "Create",
+            "put": "Update",
+            "patch": "Modify",
+            "delete": "Delete"
+          }
+        }
+      }
+    },
+    "functionNaming": {
+      "_comment": "각 HTTP 메서드에 대응하는 함수 접두사를 설정합니다",
+      "get": "fetch",
+      "post": "create",
+      "put": "update",
+      "patch": "modify",
+      "delete": "remove"
+    },
+    "_alternatives_functionNaming": {
+      "_comment": "다른 팀에서 사용할 수 있는 대안 예시들",
+      "_restful_style": { "get": "get", "post": "create", "put": "update", "delete": "delete" },
+      "_service_style": { "get": "fetch", "post": "add", "put": "replace", "delete": "remove" },
+      "_domain_style": { "get": "retrieve", "post": "register", "put": "modify", "delete": "deactivate" }
+    }
+  }
+}
