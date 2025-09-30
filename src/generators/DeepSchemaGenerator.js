@@ -2,7 +2,6 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { dirname } from 'path'
-import { convertToServerList, detectServersFromModel } from './autoDetectServers.js'
 
 /**
  * 스키마에서 모든 프로퍼티와 타입을 재귀적으로 추출하는 고도화된 스크립트
