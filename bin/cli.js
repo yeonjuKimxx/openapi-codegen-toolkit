@@ -38,9 +38,18 @@ program
 		try {
 			console.log('🚀 OpenAPI CodeGen 시작...')
 
-			// ConfigManager와 Generator import
+			// 모든 필요한 클래스 import
 			const { ConfigManager } = await import('../src/core/ConfigManager.js')
 			const { Generator } = await import('../src/core/Generator.js')
+			const { PathResolver } = await import('../src/core/PathResolver.js')
+			const { ImportResolver } = await import('../src/core/ImportResolver.js')
+			const { NamingConventions } = await import('../src/utils/NamingConventions.js')
+			const { TypeGenerator } = await import('../src/generators/TypeGenerator.js')
+			const { TagsGenerator } = await import('../src/generators/TagsGenerator.js')
+			const { EndpointGenerator } = await import('../src/generators/EndpointGenerator.js')
+			const { DomainAPIGenerator } = await import('../src/generators/DomainAPIGenerator.js')
+			const { ReactQueryGenerator } = await import('../src/generators/ReactQueryGenerator.js')
+			const { DeepSchemaGenerator } = await import('../src/generators/DeepSchemaGenerator.js')
 
 			// 설정 파일 로드
 			const configManager = new ConfigManager()
@@ -54,8 +63,24 @@ program
 			// 설정 검증
 			configManager.validateConfigOrThrow(config)
 
-			// Generator 인스턴스 생성
-			const generator = new Generator(config)
+			// PathResolver, ImportResolver, NamingConventions 인스턴스 생성
+			const pathResolver = new PathResolver(config)
+			const importResolver = new ImportResolver(config, pathResolver)
+			const naming = new NamingConventions(config)
+
+			// 모든 Generator 인스턴스 생성
+			const generators = {
+				generateTypes: new TypeGenerator(config, pathResolver, importResolver, naming),
+				generateTags: new TagsGenerator(config, pathResolver, importResolver, naming),
+				generateValidatedTypes: new TypeGenerator(config, pathResolver, importResolver, naming),
+				generateDeepSchema: new DeepSchemaGenerator(config, pathResolver, importResolver, naming),
+				generateEndpoints: new EndpointGenerator(config, pathResolver, importResolver, naming),
+				generateDomainAPI: new DomainAPIGenerator(config, pathResolver, importResolver, naming),
+				generateReactQueryHooks: new ReactQueryGenerator(config, pathResolver, importResolver, naming),
+			}
+
+			// Generator 인스턴스 생성 (모든 의존성 전달)
+			const generator = new Generator(config, pathResolver, importResolver, naming, generators)
 
 			// 코드 생성 실행
 			if (options.server) {
