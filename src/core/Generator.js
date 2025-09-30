@@ -204,13 +204,72 @@ export class Generator {
 			throw new Error(`${step.executor} generator not found`)
 		}
 
-		// servers가 없으면 자동 감지 (TODO: 서버 자동 감지 로직)
+		// servers가 없으면 자동 감지
 		const targetServers = servers || this.detectServers()
 
 		// 각 서버에 대해 실행
 		for (const server of targetServers) {
 			console.log(`   🔧 ${server} 처리 중...`)
-			await executor.generate(server)
+
+			try {
+				// generator 실행
+				const result = await executor.generate(server)
+
+				// 결과가 문자열이면 파일로 저장
+				if (typeof result === 'string' && result.length > 0) {
+					const filePath = this.getOutputPath(step.executor, server)
+					if (filePath) {
+						this.writeFile(filePath, result)
+					}
+				}
+			} catch (error) {
+				console.error(`   ❌ ${server} 처리 실패:`, error.message)
+				throw error
+			}
+		}
+	}
+
+	/**
+	 * 단계별 출력 파일 경로 결정
+	 */
+	getOutputPath(executorName, serverName, tagName = null) {
+		const fileConfig = this.config.fileGeneration?.files || {}
+
+		switch (executorName) {
+			case 'generateTypes':
+				// schema.d.ts는 openapi-typescript가 생성하므로 여기서는 건너뜀
+				return null
+
+			case 'generateTags':
+				// src/domains/{serverName}/tags.ts
+				return this.pathResolver.resolvePath(
+					this.config.fileGeneration.domainTypes + '/../tags.ts',
+					{ serverName }
+				)
+
+			case 'generateValidatedTypes':
+				// src/domains/{serverName}/types/validated.ts
+				return this.pathResolver.resolvePath(
+					this.config.fileGeneration.domainTypes + '/' + fileConfig.validated,
+					{ serverName }
+				)
+
+			case 'generateDeepSchema':
+				// src/domains/{serverName}/types/deepSchema.ts
+				return this.pathResolver.resolvePath(
+					this.config.fileGeneration.domainTypes + '/' + fileConfig.deepSchema,
+					{ serverName }
+				)
+
+			case 'generateEndpoints':
+			case 'generateDomainAPI':
+			case 'generateReactQueryHooks':
+				// 태그별로 생성되므로 여기서는 경로를 반환하지 않음
+				// generator 내부에서 처리
+				return null
+
+			default:
+				return null
 		}
 	}
 
