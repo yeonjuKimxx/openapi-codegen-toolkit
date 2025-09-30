@@ -43,7 +43,7 @@ npx @stepin/openapi-codegen init
 
   "envVarConfig": {
     "enabled": true,
-    "prefix": "NEXT_PUBLIC_",
+    "prefix": "NEXT_PUBLIC_STEPIN_",
     "defaultDocsSuffix": "/docs-yaml"
   },
 
@@ -80,9 +80,9 @@ npx @stepin/openapi-codegen init
 `.env.local` 또는 `.env` 파일에 OpenAPI 서버 URL을 추가합니다:
 
 ```bash
-NEXT_PUBLIC_AUTH_SERVER=https://api.example.com/auth
-NEXT_PUBLIC_USER_SERVER=https://api.example.com/user
-NEXT_PUBLIC_PAYMENT_SERVER=https://api.example.com/payment
+NEXT_PUBLIC_STEPIN_AUTH=https://api.example.com/auth
+NEXT_PUBLIC_STEPIN_USER=https://api.example.com/user
+NEXT_PUBLIC_STEPIN_PAYMENT=https://api.example.com/payment
 ```
 
 ### 4. 코드 생성
@@ -438,7 +438,7 @@ console.log(AUTHENTICATION_ENDPOINTS.login) // "/auth/login"
 
 ```bash
 # 환경변수 확인
-echo $NEXT_PUBLIC_AUTH_SERVER
+echo $NEXT_PUBLIC_STEPIN_AUTH
 ```
 
 ### 타입 생성 실패

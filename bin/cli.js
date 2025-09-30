@@ -108,7 +108,7 @@ program
 				console.log('\n다음 단계:')
 				console.log('1. openapi-codegen.config.json 파일을 프로젝트에 맞게 수정하세요')
 				console.log('2. .env 파일에 OpenAPI 서버 URL을 추가하세요')
-				console.log('   예: NEXT_PUBLIC_AUTH_SERVER=https://api.example.com')
+				console.log('   예: NEXT_PUBLIC_STEPIN_AUTH=https://api.example.com')
 				console.log('3. npx @stepin/openapi-codegen generate 명령어로 코드를 생성하세요')
 			}
 		} catch (error) {
