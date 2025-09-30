@@ -37,10 +37,19 @@ export class DomainAPIGenerator {
 	 *
 	 * @param {string} serverName - 서버 이름
 	 * @param {string} tagName - 태그 이름
-	 * @param {Array} pathDataArray - 경로 데이터 배열
 	 * @returns {string} 생성된 파일 내용
 	 */
-	generate(serverName, tagName, pathDataArray) {
+	generate(serverName, tagName) {
+		// schema에서 경로 추출
+		const schemaPath = this.pathResolver.getSchemaPath(serverName)
+		const schemaContent = readFileSync(schemaPath, 'utf-8')
+		const pathDataArray = this.extractPathsFromSchema(schemaContent, serverName, tagName)
+
+		if (pathDataArray.length === 0) {
+			console.warn(`   ⚠️  ${tagName} 태그에 대한 경로를 찾을 수 없습니다.`)
+			return ''
+		}
+
 		// validated 타입들 파싱
 		const { allTypes, operationTypes } = this.parseValidatedTypes(serverName)
 
@@ -93,6 +102,48 @@ export class DomainAPIGenerator {
 
 		// 파일 내용 생성
 		return this.generateFileContent(serverName, tagName, usedTypes, apiMethods)
+	}
+
+	/**
+	 * Schema에서 태그의 경로 추출
+	 */
+	extractPathsFromSchema(schemaContent, serverName, tagName) {
+		const pathsData = []
+
+		try {
+			const pathsMatch = schemaContent.match(/export interface paths\s*\{([\s\S]*?)(?=\nexport interface)/)
+			if (!pathsMatch) return pathsData
+
+			const pathsBlock = pathsMatch[1]
+			const pathRegex = /['"]([^'"]+)['"]:\s*\{([\s\S]*?)\n(?:\t| {4})\}/g
+			let pathMatch
+
+			while ((pathMatch = pathRegex.exec(pathsBlock)) !== null) {
+				const [_, path, pathDetails] = pathMatch
+
+				const extractedTag = this.naming.extractTagFromPath(path)
+				if (extractedTag !== tagName) continue
+
+				const methodRegex = /(get|post|put|patch|delete)\??:/gi
+				let methodMatch
+
+				while ((methodMatch = methodRegex.exec(pathDetails)) !== null) {
+					const method = methodMatch[1].toLowerCase()
+					const functionName = this.naming.generateFunctionName(path, method)
+
+					pathsData.push({
+						path,
+						method,
+						functionName,
+						tag: tagName,
+					})
+				}
+			}
+		} catch (error) {
+			console.error(`   ❌ ${serverName} 경로 추출 오류:`, error.message)
+		}
+
+		return pathsData
 	}
 
 	/**
@@ -359,8 +410,8 @@ ${apiMethods.join('\n')}
 
 		const pathsBlock = pathsMatch[1]
 
-		// 각 경로 순회
-		const pathRegex = /['"]([^'"]+)['"]:\s*\{([\s\S]*?)\n\t\}/g
+		// 각 경로 순회 (탭 또는 공백 4개)
+		const pathRegex = /['"]([^'"]+)['"]:\s*\{([\s\S]*?)\n(?:\t| {4})\}/g
 		let pathMatch
 
 		while ((pathMatch = pathRegex.exec(pathsBlock)) !== null) {

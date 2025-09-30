@@ -145,68 +145,61 @@ export class TagsGenerator {
 		const serverPascal = this.naming.naming?.tagToPascalCase?.(serverName) ||
 			serverName.charAt(0).toUpperCase() + serverName.slice(1)
 
-		// 파일 헤더
-		const header = `/**
+		return `/**
  * 🏷️ ${serverUpper} 서버 태그 리스트
  *
  * ${serverUpper} 서버의 OpenAPI 스키마에서 자동 추출된 태그들입니다.
  *
+ * 🔧 생성 명령어: npm run api:extract-tags
+ *
  * 📊 총 ${sortedTags.length}개 태그 발견
  */
 
-// === 🏷️ ${serverUpper} 서버 태그 리스트 ===`
+// === 🏷️ ${serverUpper} 서버 태그 리스트 ===
 
-		// TAGS 배열
-		const tagsArray = `export const ${serverUpper}_TAGS = [
-  ${sortedTags.map((tag) => `'${tag}'`).join(',\n  ')}
-] as const;`
+/**
+ * ${serverUpper} 서버의 모든 Swagger 태그들
+ */
+export const ${serverUpper}_TAGS = [
+${sortedTags.map((tag) => `  '${tag}',`).join('\n')}
+] as const;
 
-		// 태그 타입
-		const tagType = `export type ${serverPascal}Tag = typeof ${serverUpper}_TAGS[number];`
+/**
+ * ${serverUpper} 서버 태그별 API 수량 통계
+ */
+export const ${serverUpper}_TAG_STATS = {
+${sortedTags.map((tag) => `  '${tag}': ${tagStats[tag]},`).join('\n')}
+} as const;
 
-		// 태그 통계
-		const statsEntries = sortedTags.map((tag) => `  ${tag}: ${tagStats[tag]}`).join(',\n')
-		const tagStatsObject = `export const ${serverUpper}_TAG_STATS = {
-${statsEntries}
-} as const;`
+/**
+ * ${serverUpper} 서버 태그 요약
+ */
+export const ${serverUpper}_TAG_SUMMARY = {
+  server: '${serverName}',
+  total: ${sortedTags.length},
+  tags: ${serverUpper}_TAGS,
+  stats: ${serverUpper}_TAG_STATS
+} as const;
 
-		// 태그 요약
-		const summaryEntries = sortedTags.map((tag) => {
-			return `  ${tag}: {
-    name: '${tag}',
-    count: ${tagStats[tag]},
-    description: '${tag} 관련 API'
-  }`
-		}).join(',\n')
+// === 🎯 타입 정의 ===
 
-		const tagSummary = `export const ${serverUpper}_TAG_SUMMARY = {
-${summaryEntries}
-} as const;`
+/**
+ * ${serverUpper} 서버 태그 타입
+ */
+export type ${serverPascal}Tag = typeof ${serverUpper}_TAGS[number];
 
-		// export default
-		const defaultExport = `export default {
+/**
+ * ${serverUpper} 서버 태그 통계 타입
+ */
+export type ${serverPascal}TagStats = typeof ${serverUpper}_TAG_STATS;
+
+// === 🔧 기본 export ===
+
+export default {
   TAGS: ${serverUpper}_TAGS,
   STATS: ${serverUpper}_TAG_STATS,
   SUMMARY: ${serverUpper}_TAG_SUMMARY
 };`
-
-		return [
-			header,
-			'',
-			tagsArray,
-			'',
-			tagType,
-			'',
-			'// === 📊 태그별 통계 ===',
-			tagStatsObject,
-			'',
-			'// === 📋 태그 요약 ===',
-			tagSummary,
-			'',
-			'// === 🎯 Default Export ===',
-			defaultExport,
-			''
-		].join('\n')
 	}
 }
 

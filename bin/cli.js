@@ -44,6 +44,7 @@ program
 			const { PathResolver } = await import('../src/core/PathResolver.js')
 			const { ImportResolver } = await import('../src/core/ImportResolver.js')
 			const { NamingConventions } = await import('../src/utils/NamingConventions.js')
+			const { SchemaGenerator } = await import('../src/generators/SchemaGenerator.js')
 			const { TypeGenerator } = await import('../src/generators/TypeGenerator.js')
 			const { TagsGenerator } = await import('../src/generators/TagsGenerator.js')
 			const { EndpointGenerator } = await import('../src/generators/EndpointGenerator.js')
@@ -70,7 +71,7 @@ program
 
 			// 모든 Generator 인스턴스 생성
 			const generators = {
-				generateTypes: new TypeGenerator(config, pathResolver, importResolver, naming),
+				generateTypes: new SchemaGenerator(config, pathResolver),
 				generateTags: new TagsGenerator(config, pathResolver, importResolver, naming),
 				generateValidatedTypes: new TypeGenerator(config, pathResolver, importResolver, naming),
 				generateDeepSchema: new DeepSchemaGenerator(config, pathResolver, importResolver, naming),

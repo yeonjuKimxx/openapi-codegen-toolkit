@@ -13,7 +13,8 @@
  * - 타입 자동 추론
  */
 
-import { readFileSync, existsSync } from 'fs'
+import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'fs'
+import { dirname } from 'path'
 
 /**
  * ReactQueryGenerator 클래스
@@ -30,6 +31,105 @@ export class ReactQueryGenerator {
 		this.pathResolver = pathResolver
 		this.importResolver = importResolver
 		this.naming = naming
+	}
+
+	/**
+	 * React Query hooks 생성 (메인 진입점)
+	 *
+	 * @param {string} serverName - 서버 이름
+	 * @param {string} tagName - 태그 이름
+	 * @returns {void} 2개 파일 직접 생성 (useQueries.ts, useMutations.ts)
+	 */
+	generate(serverName, tagName) {
+		// API 파일에서 함수 목록 파싱
+		const apiPath = this.pathResolver.resolvePath(
+			this.config.fileGeneration.apiEndpoints + '/{tagName}/' + this.config.fileGeneration.files.domainApi,
+			{ serverName, tagName }
+		)
+
+		if (!existsSync(apiPath)) {
+			console.warn(`   ⚠️  ${tagName}: API 파일을 찾을 수 없습니다 (${apiPath})`)
+			return ''
+		}
+
+		const apiContent = readFileSync(apiPath, 'utf-8')
+		const functions = this.parseAPIFile(apiContent, tagName, serverName)
+
+		if (functions.length === 0) {
+			console.warn(`   ⚠️  ${tagName}: API 함수를 찾을 수 없습니다`)
+			return ''
+		}
+
+		// Query hooks 생성
+		const queryHooksContent = this.generateQueryHooks(serverName, tagName, functions)
+		if (queryHooksContent) {
+			const tagPascal = tagName.charAt(0).toUpperCase() + tagName.slice(1).replace(/-./g, x => x[1].toUpperCase())
+			const queryPath = this.pathResolver.resolvePath(
+				this.config.fileGeneration.apiEndpoints + '/{tagName}/use{tagPascal}Queries.ts',
+				{ serverName, tagName, tagPascal }
+			)
+			const dir = dirname(queryPath)
+			if (!existsSync(dir)) {
+				mkdirSync(dir, { recursive: true })
+			}
+			writeFileSync(queryPath, queryHooksContent, 'utf-8')
+			console.log(`   💾 생성: ${queryPath.replace(process.cwd() + '/', '')}`)
+		}
+
+		// Mutation hooks 생성
+		const mutationHooksContent = this.generateMutationHooks(serverName, tagName, functions)
+		if (mutationHooksContent) {
+			const tagPascal = tagName.charAt(0).toUpperCase() + tagName.slice(1).replace(/-./g, x => x[1].toUpperCase())
+			const mutationPath = this.pathResolver.resolvePath(
+				this.config.fileGeneration.apiEndpoints + '/{tagName}/use{tagPascal}Mutations.ts',
+				{ serverName, tagName, tagPascal }
+			)
+			const dir = dirname(mutationPath)
+			if (!existsSync(dir)) {
+				mkdirSync(dir, { recursive: true })
+			}
+			writeFileSync(mutationPath, mutationHooksContent, 'utf-8')
+			console.log(`   💾 생성: ${mutationPath.replace(process.cwd() + '/', '')}`)
+		}
+
+		return ''
+	}
+
+	/**
+	 * API 파일에서 함수 정보 분석
+	 */
+	parseAPIFile(content, tagName, serverName) {
+		const functions = []
+
+		// export const functionName = async 패턴 매칭
+		const functionRegex = /export const (\w+) = async \((.*?)\) => \{([\s\S]*?)\n\};/g
+		let match
+
+		while ((match = functionRegex.exec(content)) !== null) {
+			const [, functionName, params] = match
+
+			// 함수 유형 분류
+			let hookType = 'query'
+			if (
+				functionName.startsWith('create') ||
+				functionName.startsWith('modify') ||
+				functionName.startsWith('remove') ||
+				functionName.startsWith('update') ||
+				functionName.startsWith('delete')
+			) {
+				hookType = 'mutation'
+			}
+
+			functions.push({
+				name: functionName,
+				params: params.trim(),
+				hookType,
+				tag: tagName,
+				server: serverName,
+			})
+		}
+
+		return functions
 	}
 
 	/**

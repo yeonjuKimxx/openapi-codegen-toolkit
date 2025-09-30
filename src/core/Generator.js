@@ -12,7 +12,7 @@
  * - 진행 상황 추적
  */
 
-import { writeFileSync, mkdirSync, existsSync } from 'fs'
+import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs'
 import { dirname } from 'path'
 
 /**
@@ -212,20 +212,72 @@ export class Generator {
 			console.log(`   🔧 ${server} 처리 중...`)
 
 			try {
-				// generator 실행
-				const result = await executor.generate(server)
+				// 태그별로 실행해야 하는 generator인지 확인
+				const needsTags = ['generateEndpoints', 'generateDomainAPI', 'generateReactQueryHooks'].includes(
+					step.executor
+				)
 
-				// 결과가 문자열이면 파일로 저장
-				if (typeof result === 'string' && result.length > 0) {
-					const filePath = this.getOutputPath(step.executor, server)
-					if (filePath) {
-						this.writeFile(filePath, result)
+				if (needsTags) {
+					// tags.ts에서 태그 목록 읽기
+					const tags = this.readServerTags(server)
+					if (tags.length === 0) {
+						console.warn(`   ⚠️  ${server} 서버의 태그를 찾을 수 없습니다.`)
+						continue
+					}
+
+					// 각 태그별로 실행
+					for (const tag of tags) {
+						const result = await executor.generate(server, tag)
+
+						// 결과가 문자열이면 파일로 저장
+						if (typeof result === 'string' && result.length > 0) {
+							const filePath = this.getOutputPath(step.executor, server, tag)
+							if (filePath) {
+								this.writeFile(filePath, result)
+							}
+						}
+					}
+				} else {
+					// 서버별로만 실행
+					const result = await executor.generate(server)
+
+					// 결과가 문자열이면 파일로 저장
+					if (typeof result === 'string' && result.length > 0) {
+						const filePath = this.getOutputPath(step.executor, server)
+						if (filePath) {
+							this.writeFile(filePath, result)
+						}
 					}
 				}
 			} catch (error) {
 				console.error(`   ❌ ${server} 처리 실패:`, error.message)
 				throw error
 			}
+		}
+	}
+
+	/**
+	 * 서버의 tags.ts에서 태그 목록 읽기
+	 */
+	readServerTags(serverName) {
+		try {
+			const tagsPath = this.pathResolver.resolvePath(this.config.fileGeneration.domainTypes + '/../tags.ts', {
+				serverName,
+			})
+			const content = readFileSync(tagsPath, 'utf-8')
+
+			// AUTH_TAGS = ['auth', 'device', ...] 패턴에서 추출
+			const tagsMatch = content.match(/export const [A-Z_]+_TAGS = \[([\s\S]*?)\] as const/)
+			if (!tagsMatch) return []
+
+			const tagsContent = tagsMatch[1]
+			const tagMatches = tagsContent.match(/['"]([^'"]+)['"]/g)
+			if (!tagMatches) return []
+
+			return tagMatches.map((match) => match.slice(1, -1))
+		} catch (error) {
+			console.warn(`   ⚠️  ${serverName} tags.ts 읽기 실패:`, error.message)
+			return []
 		}
 	}
 
@@ -262,10 +314,23 @@ export class Generator {
 				)
 
 			case 'generateEndpoints':
+				// src/domains/{serverName}/api/{tagName}/endpoint.ts
+				if (!tagName) return null
+				return this.pathResolver.resolvePath(
+					this.config.fileGeneration.apiEndpoints + '/{tagName}/' + fileConfig.endpoint,
+					{ serverName, tagName }
+				)
+
 			case 'generateDomainAPI':
+				// src/domains/{serverName}/api/{tagName}/{tagName}API.ts
+				if (!tagName) return null
+				return this.pathResolver.resolvePath(
+					this.config.fileGeneration.apiEndpoints + '/{tagName}/' + fileConfig.domainApi,
+					{ serverName, tagName }
+				)
+
 			case 'generateReactQueryHooks':
-				// 태그별로 생성되므로 여기서는 경로를 반환하지 않음
-				// generator 내부에서 처리
+				// ReactQueryGenerator 내부에서 2개 파일 생성하므로 null 반환
 				return null
 
 			default:

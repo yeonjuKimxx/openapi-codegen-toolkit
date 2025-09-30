@@ -72,7 +72,7 @@ export class TypeGenerator {
 		const pathsBlock = pathsMatch ? pathsMatch[1] : ''
 
 		const componentsMatch = schemaContent.match(
-			/export interface components \{[\s\S]*?schemas: \{([\s\S]*?)(?=\n\t\}[\s\S]*?\nexport interface)/
+			/export interface components \{[\s\S]*?schemas: \{([\s\S]*?)(?=\n(?:\t| {4})\}[\s\S]*?\nexport interface)/
 		)
 		const componentsSchemasBlock = componentsMatch ? componentsMatch[1] : ''
 
@@ -83,8 +83,8 @@ export class TypeGenerator {
 			`  📊 추출된 블록 크기: paths(${pathsBlock.length}), schemas(${componentsSchemasBlock.length}), operations(${operationsBlock.length})`
 		)
 
-		// 2. paths 블록을 기준으로 엔드포인트 순회
-		const pathRegex = /['"]([^'"]+)['"]:\s*\{([\s\S]*?)\n\t\}/g
+		// 2. paths 블록을 기준으로 엔드포인트 순회 (탭 또는 공백 4개)
+		const pathRegex = /['"]([^'"]+)['"]:\s*\{([\s\S]*?)\n(?:\t| {4})\}/g
 		let pathMatch
 		let pathCount = 0
 
@@ -105,8 +105,8 @@ export class TypeGenerator {
 				const controllerName = operationId.split('_')[0]
 				generatedTypes.push(`//// ${controllerName}`, `// ${operationId}`)
 
-				// 4. 해당 operationId의 정의 블록 찾기
-				const operationRegex = new RegExp(`${operationId}:\\s*\\{([\\s\\S]*?)\\n\\t\\}`, 'm')
+				// 4. 해당 operationId의 정의 블록 찾기 (탭 또는 공백 4개)
+				const operationRegex = new RegExp(`${operationId}:\\s*\\{([\\s\\S]*?)\\n(?:\\t| {4})\\}`, 'm')
 				const operationDetailsMatch = operationsBlock.match(operationRegex)
 				if (!operationDetailsMatch) continue
 
@@ -115,10 +115,10 @@ export class TypeGenerator {
 				// 5. Params 타입 생성 - 모든 파라미터 타입 동적 감지
 				const paramsParts = []
 				if (operationDetails.includes('parameters:')) {
-					const parametersMatch = operationDetails.match(/parameters:\s*\{([\s\S]*?)\n\t\t\}/)
+					const parametersMatch = operationDetails.match(/parameters:\s*\{([\s\S]*?)\n(?:\t{2}| {8})\}/)
 					if (parametersMatch) {
 						const parametersBlock = parametersMatch[1]
-						const paramTypeRegex = /(\w+)(\??):\s*\{[\s\S]*?\n\t\t\t\}/g
+						const paramTypeRegex = /(\w+)(\??):\s*\{[\s\S]*?\n(?:\t{3}| {12})\}/g
 						let paramMatch
 
 						while ((paramMatch = paramTypeRegex.exec(parametersBlock)) !== null) {
@@ -163,9 +163,9 @@ export class TypeGenerator {
 						`export type ${operationId}_Response = components['schemas']['${responseSchemaName}'];`
 					)
 
-					// RO 타입 추출 (Response.data 필드)
+					// RO 타입 추출 (Response.data 필드) (탭 또는 공백 8개)
 					const schemaDefinitionRegex = new RegExp(
-						`${responseSchemaName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:\\s*\\{([\\s\\S]*?)\\n\\t\\t\\}`,
+						`${responseSchemaName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:\\s*\\{([\\s\\S]*?)\\n(?:\\t{2}| {8})\\}`,
 						''
 					)
 					const schemaDefinitionMatch = componentsSchemasBlock.match(schemaDefinitionRegex)
