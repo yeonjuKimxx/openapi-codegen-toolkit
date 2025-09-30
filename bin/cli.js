@@ -38,15 +38,38 @@ program
 		try {
 			console.log('🚀 OpenAPI CodeGen 시작...')
 
-			// TODO: 실제 Generator 로직 연결
-			// const { Generator } = await import('../src/core/Generator.js')
-			// const { ConfigManager } = await import('../src/core/ConfigManager.js')
-			// ...
+			// ConfigManager와 Generator import
+			const { ConfigManager } = await import('../src/core/ConfigManager.js')
+			const { Generator } = await import('../src/core/Generator.js')
 
-			console.log('⚠️  아직 구현 중입니다.')
-			console.log('옵션:', options)
+			// 설정 파일 로드
+			const configManager = new ConfigManager()
+			const config = configManager.loadConfig(options.config)
+
+			if (!config) {
+				console.error('❌ 설정 파일을 찾을 수 없습니다.')
+				process.exit(1)
+			}
+
+			// 설정 검증
+			configManager.validateConfigOrThrow(config)
+
+			// Generator 인스턴스 생성
+			const generator = new Generator(config)
+
+			// 코드 생성 실행
+			if (options.server) {
+				console.log(`📦 서버: ${options.server}`)
+				await generator.generateForServer(options.server)
+			} else {
+				console.log('📦 모든 서버 생성')
+				await generator.generateAll()
+			}
+
+			console.log('\n✅ 코드 생성 완료!')
 		} catch (error) {
 			console.error('❌ 생성 실패:', error.message)
+			console.error(error.stack)
 			process.exit(1)
 		}
 	})
@@ -60,10 +83,34 @@ program
 	.action(async (options) => {
 		try {
 			console.log('🎬 프로젝트 초기화...')
-			console.log('타입:', options.type)
+			console.log(`📦 프로젝트 타입: ${options.type}`)
 
-			// TODO: 설정 파일 생성 로직
-			console.log('⚠️  아직 구현 중입니다.')
+			// ConfigManager import
+			const { ConfigManager } = await import('../src/core/ConfigManager.js')
+			const configManager = new ConfigManager()
+
+			// 프로젝트 타입별 기본 설정
+			const defaultConfig = configManager.getDefaultConfig()
+			defaultConfig.projectType = options.type
+			defaultConfig.projectName = 'my-project'
+
+			// 설정 파일 경로
+			const configPath = './openapi-codegen.config.json'
+
+			// 설정 파일 생성
+			const success = configManager.createConfig(configPath, defaultConfig, {
+				overwrite: options.force,
+				pretty: true,
+			})
+
+			if (success) {
+				console.log('\n✅ 초기화 완료!')
+				console.log('\n다음 단계:')
+				console.log('1. openapi-codegen.config.json 파일을 프로젝트에 맞게 수정하세요')
+				console.log('2. .env 파일에 OpenAPI 서버 URL을 추가하세요')
+				console.log('   예: NEXT_PUBLIC_AUTH_SERVER=https://api.example.com')
+				console.log('3. npx @stepin/openapi-codegen generate 명령어로 코드를 생성하세요')
+			}
 		} catch (error) {
 			console.error('❌ 초기화 실패:', error.message)
 			process.exit(1)
@@ -78,9 +125,27 @@ program
 	.action(async (options) => {
 		try {
 			console.log('🔍 설정 파일 검증 중...')
+			console.log(`📄 파일: ${options.config}`)
 
-			// TODO: ConfigManager로 검증
-			console.log('⚠️  아직 구현 중입니다.')
+			// ConfigManager import
+			const { ConfigManager } = await import('../src/core/ConfigManager.js')
+			const configManager = new ConfigManager()
+
+			// 설정 파일 로드
+			const config = configManager.loadConfig(options.config)
+
+			if (!config) {
+				console.error('❌ 설정 파일을 찾을 수 없습니다.')
+				process.exit(1)
+			}
+
+			// 설정 검증
+			configManager.validateConfigOrThrow(config)
+
+			console.log('\n✅ 설정 파일이 유효합니다!')
+			console.log(`\n프로젝트 정보:`)
+			console.log(`  이름: ${config.projectName}`)
+			console.log(`  타입: ${config.projectType}`)
 		} catch (error) {
 			console.error('❌ 검증 실패:', error.message)
 			process.exit(1)
