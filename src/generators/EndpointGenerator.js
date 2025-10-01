@@ -98,30 +98,27 @@ export class EndpointGenerator {
 	 * Endpoint 파일 생성 (event-stepin-ai 형식)
 	 */
 	generateEndpointFile(serverName, tagName, paths) {
-		const serverUpper = serverName.toUpperCase()
 		const tagUpper = this.naming.tagToIdentifier(tagName)
 
 		const staticPaths = paths.filter((p) => !p.isDynamic)
 		const dynamicPaths = paths.filter((p) => p.isDynamic)
 
 		const header = `/**
- * 🔸 ${serverUpper} API
+ * 🔸 ${tagUpper} API
  *
  * 자동 생성된 파일입니다. 수정하지 마세요.
  * 자동 생성된 파일 - 직접 수정하지 마세요
  */
 
-// === 📡 ${serverUpper} API 엔드포인트 ===
+// === 📡 ${tagUpper} API 엔드포인트 ===
 `
 
 		let apiSection = ''
 		if (staticPaths.length > 0) {
 			apiSection = `
-export const ${serverUpper}_API = {
+export const ${tagUpper}_API = {
 \t// ${tagName} 카테고리 (${staticPaths.length}개)
-\t${tagUpper}: {
-${staticPaths.map(p => `\t\t/** ${p.method.toUpperCase()} ${p.path} */\n\t\t${p.constantName}: '${p.path}' as const,`).join('\n')}
-\t},
+${staticPaths.map(p => `\t/** ${p.method.toUpperCase()} ${p.path} */\n\t${p.constantName}: '${p.path}' as const,`).join('\n')}
 } as const
 `
 		}
@@ -129,25 +126,23 @@ ${staticPaths.map(p => `\t\t/** ${p.method.toUpperCase()} ${p.path} */\n\t\t${p.
 		let helpersSection = ''
 		if (dynamicPaths.length > 0) {
 			helpersSection = `
-// === 🔧 ${serverUpper} API 헬퍼 ===
+// === 🔧 ${tagUpper} API 헬퍼 ===
 
-export const ${serverUpper}_HELPERS = {
+export const ${tagUpper}_HELPERS = {
 \t// ${tagName} 카테고리 (${dynamicPaths.length}개)
-\t${tagUpper}: {
 ${dynamicPaths.map(p => {
 	const params = p.path.match(/\{([^}]+)\}/g)?.map(m => m.slice(1, -1)) || []
 	const paramList = params.map(p => `${p}: string`).join(', ')
 	const pathTemplate = p.path.replace(/\{([^}]+)\}/g, '${$1}')
-	return `\t\t/** ${p.method.toUpperCase()} ${p.path} */\n\t\t${p.constantName}: (${paramList}) => \`${pathTemplate}\` as const,`
+	return `\t/** ${p.method.toUpperCase()} ${p.path} */\n\t${p.constantName}: (${paramList}) => \`${pathTemplate}\` as const,`
 }).join('\n')}
-\t},
 } as const
 `
 		} else {
 			helpersSection = `
-// === 🔧 ${serverUpper} API 헬퍼 ===
+// === 🔧 ${tagUpper} API 헬퍼 ===
 
-export const ${serverUpper}_HELPERS = {} as const
+export const ${tagUpper}_HELPERS = {} as const
 `
 		}
 
