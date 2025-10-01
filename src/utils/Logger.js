@@ -22,34 +22,47 @@ class Logger {
 	 * 로깅 설정 로드
 	 */
 	loadLoggingConfig() {
-		try {
-			const configPath = join(process.cwd(), 'scripts/api/openapi-codegen.config.json')
-			const configContent = readFileSync(configPath, 'utf8')
-			const config = JSON.parse(configContent)
-			return config.logging || {}
-		} catch (error) {
-			// 설정 파일 로드 실패 시 기본 설정 사용
-			return {
-				level: 'info',
-				enabled: true,
-				showTimestamp: false,
-				showEmoji: true,
-				levels: {
-					debug: 0,
-					info: 1,
-					success: 2,
-					warn: 3,
-					error: 4,
-					silent: 5,
-				},
-				colors: {
-					debug: { emoji: '🔍', color: 'gray' },
-					info: { emoji: '📋', color: 'blue' },
-					success: { emoji: '✅', color: 'green' },
-					warn: { emoji: '⚠️', color: 'yellow' },
-					error: { emoji: '❌', color: 'red' },
-				},
+		// config 파일을 찾을 가능성이 있는 여러 경로들
+		const possiblePaths = [
+			join(process.cwd(), 'openapi-codegen.config.json'),
+			join(process.cwd(), 'scripts/api/openapi-codegen.config.json'),
+		]
+
+		for (const configPath of possiblePaths) {
+			try {
+				const configContent = readFileSync(configPath, 'utf8')
+				const config = JSON.parse(configContent)
+				if (config.logging) {
+					return config.logging
+				}
+			} catch (error) {
+				// 파일이 없거나 파싱 실패, 다음 경로 시도
+				continue
 			}
+		}
+
+		// 모든 경로에서 설정을 찾지 못한 경우 기본 설정 사용
+		return {
+			level: 'info',
+			enabled: true,
+			showTimestamp: false,
+			showEmoji: true,
+			levels: {
+				debug: false,
+				info: true,
+				success: true,
+				warn: true,
+				error: true,
+				all: false,
+				none: false,
+			},
+			colors: {
+				debug: { emoji: '🔍', color: 'gray' },
+				info: { emoji: '📋', color: 'blue' },
+				success: { emoji: '✅', color: 'green' },
+				warn: { emoji: '⚠️', color: 'yellow' },
+				error: { emoji: '❌', color: 'red' },
+			},
 		}
 	}
 

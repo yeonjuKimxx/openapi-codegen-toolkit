@@ -14,6 +14,7 @@
  */
 
 import { readFileSync } from 'fs'
+import logger from '../utils/Logger.js'
 
 /**
  * DomainAPIGenerator 클래스
@@ -46,7 +47,7 @@ export class DomainAPIGenerator {
 		const pathDataArray = this.extractPathsFromSchema(schemaContent, serverName, tagName)
 
 		if (pathDataArray.length === 0) {
-			console.warn(`   ⚠️  ${tagName} 태그에 대한 경로를 찾을 수 없습니다.`)
+			logger.warn(`${tagName} 태그에 대한 경로를 찾을 수 없습니다.`)
 			return ''
 		}
 
@@ -66,7 +67,7 @@ export class DomainAPIGenerator {
 			// operationId 조회
 			const operationId = this.getOperationId(path, method, pathToOperationIdMap)
 			if (!operationId) {
-				console.warn(`⚠️  ${path} ${method}에 대한 operationId를 찾을 수 없습니다.`)
+				logger.warn(`${path} ${method}에 대한 operationId를 찾을 수 없습니다.`)
 				return
 			}
 
@@ -140,7 +141,7 @@ export class DomainAPIGenerator {
 				}
 			}
 		} catch (error) {
-			console.error(`   ❌ ${serverName} 경로 추출 오류:`, error.message)
+			logger.error(`${serverName} 경로 추출 오류: ${error.message}`)
 		}
 
 		return pathsData
@@ -354,7 +355,7 @@ ${apiMethods.join('\n')}
 			const validatedPath = this.pathResolver.getValidatedTypesPath(serverName)
 			return readFileSync(validatedPath, 'utf-8')
 		} catch (error) {
-			console.warn(`⚠️  ${serverName} validated.ts 파일을 읽을 수 없습니다.`)
+			logger.warn(`${serverName} validated.ts 파일을 읽을 수 없습니다.`)
 			return null
 		}
 	}

@@ -2,6 +2,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { dirname } from 'path'
+import logger from '../utils/Logger.js'
 
 /**
  * 스키마에서 모든 프로퍼티와 타입을 재귀적으로 추출하는 고도화된 스크립트
@@ -37,7 +38,7 @@ class DeepSchemaTypeExtractor {
 			this.extractSchemasWithValidatedLogic(componentsMatch[1])
 		}
 
-		console.log(`📚 총 ${this.allSchemas.size}개의 스키마를 발견했습니다.`)
+		logger.info(`총 ${this.allSchemas.size}개의 스키마를 발견했습니다.`)
 	}
 
 	/**
@@ -64,7 +65,7 @@ class DeepSchemaTypeExtractor {
 			schemaNames.push(schemaName)
 		}
 
-		console.log(`  🔍 발견된 스키마 이름들: ${schemaNames.join(', ')}`)
+		logger.debug(`발견된 스키마 이름들: ${schemaNames.join(', ')}`)
 
 		// 각 스키마의 정확한 끝 위치를 중괄호 매칭으로 찾기
 		for (let i = 0; i < startPositions.length; i++) {
@@ -131,12 +132,12 @@ class DeepSchemaTypeExtractor {
 					// 정확한 스키마 정의 추출
 					const schemaContent = componentsSchemasBlock.substring(current.start + 1, pos - 1)
 					this.allSchemas.set(schemaName, schemaContent.trim())
-					console.log(`    ✅ ${schemaName}: ${schemaContent.trim().length} chars`)
+					logger.debug(`${schemaName}: ${schemaContent.trim().length} chars`)
 				} else {
-					console.log(`    ⚠️ ${schemaName}: 중괄호 매칭 실패`)
+					logger.warn(`${schemaName}: 중괄호 매칭 실패`)
 				}
 			} catch (error) {
-				console.log(`    ❌ ${schemaName}: 추출 오류 - ${error.message}`)
+				logger.error(`${schemaName}: 추출 오류 - ${error.message}`)
 			}
 		}
 	}
@@ -167,12 +168,12 @@ class DeepSchemaTypeExtractor {
 		const properties = []
 		const nestedSchemas = new Set()
 
-		console.log(`      🔍 ${schemaName} 스키마 정의 분석 중...`)
-		console.log(`      📄 스키마 내용: ${schemaDefinition.substring(0, 200)}...`)
+		logger.debug(`${schemaName} 스키마 정의 분석 중...`)
+		logger.debug(`스키마 내용: ${schemaDefinition.substring(0, 200)}...`)
 
 		// 주석 제거 후 실제 속성만 추출
 		const cleanedSchema = this.removeCommentsFromSchema(schemaDefinition)
-		console.log(`      🧹 주석 제거 후: ${cleanedSchema.substring(0, 200)}...`)
+		logger.debug(`주석 제거 후: ${cleanedSchema.substring(0, 200)}...`)
 
 		// 속성명과 타입을 매칭하는 정규식 (옵셔널 속성 포함, 주석 제거된 내용에서만)
 		const propertyRegex = /(\w+)\??\s*:\s*([^;]+);/g
@@ -183,11 +184,11 @@ class DeepSchemaTypeExtractor {
 			const cleanType = typeDefinition.trim()
 			const isOptional = fullMatch.includes('?:') // 옵셔널 마커 체크
 
-			console.log(`        🔎 발견된 속성: ${propertyName}${isOptional ? '?' : ''} : ${cleanType}`)
+			logger.debug(`발견된 속성: ${propertyName}${isOptional ? '?' : ''} : ${cleanType}`)
 
 			// 스마트 필터링: 의미있는 속성들만 선별
 			const shouldExtract = this.isPropertyWorthExtracting(propertyName, cleanType)
-			console.log(`        ${shouldExtract ? '✅' : '❌'} ${propertyName} - ${shouldExtract ? '추출함' : '스킵됨'}`)
+			logger.debug(`${shouldExtract ? '✅' : '❌'} ${propertyName} - ${shouldExtract ? '추출함' : '스킵됨'}`)
 
 			if (!shouldExtract) {
 				continue
@@ -337,7 +338,7 @@ class DeepSchemaTypeExtractor {
 	processNestedSchemas(nestedSchemas, depth = 0) {
 		const maxDepth = 5 // 무한 재귀 방지
 		if (depth > maxDepth) {
-			console.warn(`⚠️ 최대 깊이(${maxDepth})에 도달했습니다.`)
+			logger.warn(`최대 깊이(${maxDepth})에 도달했습니다.`)
 			return []
 		}
 
@@ -533,27 +534,27 @@ class DeepSchemaTypeExtractor {
 	 * 결과 요약 출력
 	 */
 	printSummary(schemaName, mainSchema, nestedTypes, outputPath) {
-		console.log('✅ 깊이 있는 타입 추출 완료!')
-		console.log(`📁 출력 파일: ${outputPath}`)
-		console.log(`🎯 메인 스키마: ${schemaName}`)
-		console.log(`📋 메인 프로퍼티: ${mainSchema.properties.length}개`)
-		console.log(`🔢 Enum 프로퍼티: ${mainSchema.properties.filter((p) => p.isEnum).length}개`)
-		console.log(`🔗 중첩 스키마: ${nestedTypes.length}개`)
-		console.log(`📊 최대 깊이: ${Math.max(...nestedTypes.map((n) => n.depth), 0)}`)
+		logger.success('깊이 있는 타입 추출 완료!')
+		logger.info(`출력 파일: ${outputPath}`)
+		logger.info(`메인 스키마: ${schemaName}`)
+		logger.info(`메인 프로퍼티: ${mainSchema.properties.length}개`)
+		logger.info(`Enum 프로퍼티: ${mainSchema.properties.filter((p) => p.isEnum).length}개`)
+		logger.info(`중첩 스키마: ${nestedTypes.length}개`)
+		logger.info(`최대 깊이: ${Math.max(...nestedTypes.map((n) => n.depth), 0)}`)
 
 		if (mainSchema.properties.filter((p) => p.isEnum).length > 0) {
-			console.log('\n📝 발견된 Enum 타입들:')
+			logger.debug('발견된 Enum 타입들:')
 			mainSchema.properties
 				.filter((p) => p.isEnum)
 				.forEach((prop) => {
-					console.log(`  - ${this.capitalize(prop.name)}: [${prop.enumValues.join(', ')}]`)
+					logger.debug(`  - ${this.capitalize(prop.name)}: [${prop.enumValues.join(', ')}]`)
 				})
 		}
 
 		if (nestedTypes.length > 0) {
-			console.log('\n🔗 중첩된 스키마들:')
+			logger.debug('중첩된 스키마들:')
 			nestedTypes.forEach((nested) => {
-				console.log(`  - ${nested.schemaName} (깊이: ${nested.depth}, 프로퍼티: ${nested.properties.length}개)`)
+				logger.debug(`  - ${nested.schemaName} (깊이: ${nested.depth}, 프로퍼티: ${nested.properties.length}개)`)
 			})
 		}
 	}
@@ -563,7 +564,7 @@ class DeepSchemaTypeExtractor {
 	 */
 	async extract(schemaName, outputPath = null) {
 		try {
-			console.log(`🔍 ${schemaName} 스키마 깊이 분석 시작...`)
+			logger.info(`${schemaName} 스키마 깊이 분석 시작...`)
 
 			// 스키마 파일 읽기
 			if (!existsSync(this.schemaFilePath)) {
@@ -591,7 +592,7 @@ class DeepSchemaTypeExtractor {
 			}
 
 			// 중첩된 스키마들 재귀적으로 처리
-			console.log(`🔄 중첩된 스키마 ${nestedSchemas.size}개 처리 중...`)
+			logger.info(`중첩된 스키마 ${nestedSchemas.size}개 처리 중...`)
 			const nestedTypes = this.processNestedSchemas(nestedSchemas)
 
 			// 출력 파일 경로 결정
@@ -614,12 +615,12 @@ class DeepSchemaTypeExtractor {
 			// 결과 요약
 			this.printSummary(schemaName, mainSchema, nestedTypes, outputPath)
 
-			console.log('\n📄 생성된 파일 미리보기:')
-			console.log('─'.repeat(60))
-			console.log(typeFileContent.substring(0, 1000) + (typeFileContent.length > 1000 ? '...' : ''))
-			console.log('─'.repeat(60))
+			logger.debug('생성된 파일 미리보기:')
+			logger.debug('─'.repeat(60))
+			logger.debug(typeFileContent.substring(0, 1000) + (typeFileContent.length > 1000 ? '...' : ''))
+			logger.debug('─'.repeat(60))
 		} catch (error) {
-			console.error('❌ 오류 발생:', error.message)
+			logger.error(`오류 발생: ${error.message}`)
 			process.exit(1)
 		}
 	}
@@ -638,18 +639,18 @@ async function processBatchMode() {
 		summary: [],
 	}
 
-	console.log('🚀 배치 모드 시작: 모든 도메인의 통합 deepSchema.ts 파일 생성')
-	console.log('─'.repeat(80))
+	logger.info('배치 모드 시작: 모든 도메인의 통합 deepSchema.ts 파일 생성')
+	logger.info('─'.repeat(80))
 
 	for (const domain of domains) {
-		console.log(`\n📂 도메인 처리 중: ${domain.toUpperCase()}`)
+		logger.info(`도메인 처리 중: ${domain.toUpperCase()}`)
 
 		const schemaFilePath = `src/domains/${domain}/types/schema.d.ts`
 		const outputPath = `src/domains/${domain}/types/deepSchema.ts`
 
 		// 스키마 파일 존재 확인
 		if (!existsSync(schemaFilePath)) {
-			console.log(`  ⚠️ 스키마 파일이 존재하지 않습니다: ${schemaFilePath}`)
+			logger.warn(`스키마 파일이 존재하지 않습니다: ${schemaFilePath}`)
 			results.errors.push(`${domain}: 스키마 파일 없음`)
 			continue
 		}
@@ -664,7 +665,7 @@ async function processBatchMode() {
 			extractor.parseAllSchemas(schemaContent)
 			const schemaNames = Array.from(extractor.allSchemas.keys())
 
-			console.log(`  📋 발견된 스키마: ${schemaNames.length}개`)
+			logger.info(`발견된 스키마: ${schemaNames.length}개`)
 			results.totalSchemas += schemaNames.length
 
 			// 도메인의 모든 스키마를 하나의 파일로 통합 생성
@@ -686,41 +687,41 @@ async function processBatchMode() {
 				outputPath,
 			})
 
-			console.log(`  ✅ ${domain} 완료: ${schemaNames.length}개 스키마 → ${outputPath}`)
+			logger.success(`${domain} 완료: ${schemaNames.length}개 스키마 → ${outputPath}`)
 		} catch (error) {
-			console.log(`  ❌ ${domain} 도메인 처리 실패: ${error.message}`)
+			logger.error(`${domain} 도메인 처리 실패: ${error.message}`)
 			results.errors.push(`${domain} 도메인: ${error.message}`)
 		}
 	}
 
 	// 최종 결과 출력
-	console.log('\n' + '='.repeat(80))
-	console.log('📊 배치 처리 완료 결과')
-	console.log('='.repeat(80))
-	console.log(`🏗️ 처리된 도메인: ${results.processedDomains}/${results.totalDomains}개`)
-	console.log(`📋 총 스키마: ${results.totalSchemas}개`)
-	console.log(`✅ 생성된 파일: ${results.processedDomains}개`)
-	console.log(`❌ 실패한 도메인: ${results.errors.length}개`)
+	logger.info('='.repeat(80))
+	logger.info('배치 처리 완료 결과')
+	logger.info('='.repeat(80))
+	logger.info(`처리된 도메인: ${results.processedDomains}/${results.totalDomains}개`)
+	logger.info(`총 스키마: ${results.totalSchemas}개`)
+	logger.info(`생성된 파일: ${results.processedDomains}개`)
+	logger.info(`실패한 도메인: ${results.errors.length}개`)
 
 	// 도메인별 상세 결과
 	if (results.summary.length > 0) {
-		console.log('\n📈 도메인별 결과:')
+		logger.info('도메인별 결과:')
 		results.summary.forEach((domainResult) => {
-			console.log(`  📂 ${domainResult.domain.toUpperCase()}: ${domainResult.schemaCount}개 스키마`)
-			console.log(`     → ${domainResult.outputPath}`)
+			logger.info(`  ${domainResult.domain.toUpperCase()}: ${domainResult.schemaCount}개 스키마`)
+			logger.info(`     → ${domainResult.outputPath}`)
 		})
 	}
 
 	// 오류 상세 정보
 	if (results.errors.length > 0) {
-		console.log('\n❌ 발생한 오류들:')
+		logger.error('발생한 오류들:')
 		results.errors.forEach((error) => {
-			console.log(`  - ${error}`)
+			logger.error(`  - ${error}`)
 		})
 	}
 
-	console.log('\n🎉 모든 도메인 처리 완료!')
-	console.log(`📁 생성된 파일들은 각 도메인의 types 디렉토리에서 확인하세요.`)
+	logger.success('모든 도메인 처리 완료!')
+	logger.info(`생성된 파일들은 각 도메인의 types 디렉토리에서 확인하세요.`)
 }
 
 /**
@@ -737,7 +738,7 @@ async function generateConsolidatedDeepSchemaFile(extractor, schemaNames, domain
 
 	// 모든 스키마 처리
 	for (const schemaName of schemaNames) {
-		console.log(`    🔍 분석 중: ${schemaName}`)
+		logger.debug(`분석 중: ${schemaName}`)
 
 		try {
 			// 개별 스키마 분석을 위한 새로운 인스턴스
@@ -766,7 +767,7 @@ async function generateConsolidatedDeepSchemaFile(extractor, schemaNames, domain
 				nestedTypes,
 			})
 		} catch (error) {
-			console.log(`    ⚠️ ${schemaName} 스키마 처리 중 오류: ${error.message}`)
+			logger.warn(`${schemaName} 스키마 처리 중 오류: ${error.message}`)
 		}
 	}
 
@@ -842,10 +843,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
 	if (args.length === 0) {
 		// 배치 모드: 모든 도메인의 모든 스키마 처리
-		console.log('🔄 인자가 없으므로 배치 모드로 실행합니다.')
-		console.log('모든 도메인(auth, content, payment, search, system)의 모든 스키마를 처리합니다.')
+		logger.info('인자가 없으므로 배치 모드로 실행합니다.')
+		logger.info('모든 도메인(auth, content, payment, search, system)의 모든 스키마를 처리합니다.')
 		processBatchMode().catch((error) => {
-			console.error('❌ 배치 처리 중 오류 발생:', error.message)
+			logger.error(`배치 처리 중 오류 발생: ${error.message}`)
 			process.exit(1)
 		})
 	} else {
@@ -864,9 +865,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 			finalOutputPath = domainOrPath
 		}
 
-		console.log(`🎯 도메인: ${domain}`)
-		console.log(`📋 스키마: ${schemaName}`)
-		console.log(`🔬 깊이 분석 모드 활성화`)
+		logger.info(`도메인: ${domain}`)
+		logger.info(`스키마: ${schemaName}`)
+		logger.info(`깊이 분석 모드 활성화`)
 
 		const extractor = new DeepSchemaTypeExtractor(domain)
 		extractor.extract(schemaName, finalOutputPath)

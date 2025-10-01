@@ -16,6 +16,7 @@ import { execSync } from 'child_process'
 import { existsSync, mkdirSync } from 'fs'
 import { dirname } from 'path'
 import dotenv from 'dotenv'
+import logger from '../utils/Logger.js'
 
 // 환경 변수 로드
 dotenv.config()
@@ -47,7 +48,7 @@ export class SchemaGenerator {
 			throw new Error(`${serverName} 서버의 URL을 찾을 수 없습니다. .env 파일을 확인하세요.`)
 		}
 
-		console.log(`   📡 OpenAPI URL: ${url}`)
+		logger.info(`OpenAPI URL: ${url}`)
 
 		try {
 			// 디렉토리 생성
@@ -58,19 +59,19 @@ export class SchemaGenerator {
 
 			// openapi-typescript 실행
 			const command = `npx openapi-typescript ${url} --output ${schemaPath}`
-			console.log(`   🔧 실행: ${command}`)
+			logger.info(`실행: ${command}`)
 
 			execSync(command, {
 				stdio: 'inherit',
 				cwd: process.cwd(),
 			})
 
-			console.log(`   ✅ ${serverName} schema.d.ts 생성 완료`)
+			logger.success(`${serverName} schema.d.ts 생성 완료`)
 
 			// Generator.executeStep에서 파일로 저장하지 않도록 null 반환
 			return null
 		} catch (error) {
-			console.error(`   ❌ ${serverName} schema.d.ts 생성 실패:`, error.message)
+			logger.error(`${serverName} schema.d.ts 생성 실패: ${error.message}`)
 			throw error
 		}
 	}
@@ -91,7 +92,7 @@ export class SchemaGenerator {
 		let url = process.env[envVarName]
 
 		if (!url) {
-			console.warn(`⚠️  환경 변수 ${envVarName}를 찾을 수 없습니다.`)
+			logger.warn(`환경 변수 ${envVarName}를 찾을 수 없습니다.`)
 			return null
 		}
 

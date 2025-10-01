@@ -13,6 +13,7 @@
  */
 
 import { readFileSync } from 'fs'
+import logger from '../utils/Logger.js'
 
 /**
  * EndpointGenerator 클래스
@@ -88,7 +89,7 @@ export class EndpointGenerator {
 				}
 			}
 		} catch (error) {
-			console.error(`❌ ${serverName} 경로 추출 오류:`, error.message)
+			logger.error(`${serverName} 경로 추출 오류: ${error.message}`)
 		}
 
 		return pathsData

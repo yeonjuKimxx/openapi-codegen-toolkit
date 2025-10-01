@@ -15,6 +15,7 @@
 
 import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'fs'
 import { dirname } from 'path'
+import logger from '../utils/Logger.js'
 
 /**
  * ReactQueryGenerator 클래스
@@ -48,7 +49,7 @@ export class ReactQueryGenerator {
 		)
 
 		if (!existsSync(apiPath)) {
-			console.warn(`   ⚠️  ${tagName}: API 파일을 찾을 수 없습니다 (${apiPath})`)
+			logger.warn(`${tagName}: API 파일을 찾을 수 없습니다 (${apiPath})`)
 			return ''
 		}
 
@@ -56,7 +57,7 @@ export class ReactQueryGenerator {
 		const functions = this.parseAPIFile(apiContent, tagName, serverName)
 
 		if (functions.length === 0) {
-			console.warn(`   ⚠️  ${tagName}: API 함수를 찾을 수 없습니다`)
+			logger.warn(`${tagName}: API 함수를 찾을 수 없습니다`)
 			return ''
 		}
 
@@ -73,7 +74,7 @@ export class ReactQueryGenerator {
 				mkdirSync(dir, { recursive: true })
 			}
 			writeFileSync(queryPath, queryHooksContent, 'utf-8')
-			console.log(`   💾 생성: ${queryPath.replace(process.cwd() + '/', '')}`)
+			logger.info(`생성: ${queryPath.replace(process.cwd() + '/', '')}`)
 		}
 
 		// Mutation hooks 생성
@@ -89,7 +90,7 @@ export class ReactQueryGenerator {
 				mkdirSync(dir, { recursive: true })
 			}
 			writeFileSync(mutationPath, mutationHooksContent, 'utf-8')
-			console.log(`   💾 생성: ${mutationPath.replace(process.cwd() + '/', '')}`)
+			logger.info(`생성: ${mutationPath.replace(process.cwd() + '/', '')}`)
 		}
 
 		return ''
@@ -258,7 +259,7 @@ export class ReactQueryGenerator {
 			if (paramsType) usedTypes.add(paramsType)
 			if (responseType) usedTypes.add(responseType)
 
-			console.log(`   ✅ ${func.name}: API 파일에서 직접 타입 추출 성공`)
+			logger.debug(`${func.name}: API 파일에서 직접 타입 추출 성공`)
 		}
 		// 2. operationId로 찾기
 		else if (operationId && validatedTypes.operationTypes[operationId]) {
@@ -276,7 +277,7 @@ export class ReactQueryGenerator {
 				usedTypes.add(responseType)
 			}
 
-			console.log(`   ✅ ${func.name}: operationId ${operationId}에서 타입 찾기 성공`)
+			logger.debug(`${func.name}: operationId ${operationId}에서 타입 찾기 성공`)
 		}
 		// 3. 함수명에서 유추
 		else {
@@ -288,7 +289,7 @@ export class ReactQueryGenerator {
 				if (paramsType) usedTypes.add(paramsType)
 				if (responseType) usedTypes.add(responseType)
 
-				console.log(`   ⚠️  ${func.name}: 함수명에서 타입 유추 (fallback)`)
+				logger.debug(`${func.name}: 함수명에서 타입 유추 (fallback)`)
 			}
 		}
 
@@ -349,7 +350,7 @@ export class ReactQueryGenerator {
 			if (bodyType) usedTypes.add(bodyType)
 			if (responseType) usedTypes.add(responseType)
 
-			console.log(`   ✅ ${func.name}: API 파일에서 직접 타입 추출 성공`)
+			logger.debug(`${func.name}: API 파일에서 직접 타입 추출 성공`)
 		} else if (operationId && validatedTypes.operationTypes[operationId]) {
 			const types = validatedTypes.operationTypes[operationId]
 
@@ -369,7 +370,7 @@ export class ReactQueryGenerator {
 				usedTypes.add(responseType)
 			}
 
-			console.log(`   ✅ ${func.name}: operationId ${operationId}에서 타입 찾기 성공`)
+			logger.debug(`${func.name}: operationId ${operationId}에서 타입 찾기 성공`)
 		}
 
 		// Variables 타입 결정

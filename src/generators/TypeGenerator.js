@@ -14,6 +14,7 @@
  */
 
 import { readFileSync } from 'fs'
+import logger from '../utils/Logger.js'
 
 /**
  * TypeGenerator 클래스
@@ -52,7 +53,7 @@ export class TypeGenerator {
 
 			return fileContent
 		} catch (error) {
-			console.error(`❌ ${serverName} 타입 생성 실패:`, error.message)
+			logger.error(`${serverName} 타입 생성 실패: ${error.message}`)
 			throw error
 		}
 	}
@@ -79,8 +80,8 @@ export class TypeGenerator {
 		const operationsMatch = schemaContent.match(/export interface operations \{([\s\S]*?)$/)
 		const operationsBlock = operationsMatch ? operationsMatch[1] : ''
 
-		console.log(
-			`  📊 추출된 블록 크기: paths(${pathsBlock.length}), schemas(${componentsSchemasBlock.length}), operations(${operationsBlock.length})`
+		logger.debug(
+			`추출된 블록 크기: paths(${pathsBlock.length}), schemas(${componentsSchemasBlock.length}), operations(${operationsBlock.length})`
 		)
 
 		// 2. paths 블록을 기준으로 엔드포인트 순회 (탭 또는 공백 4개)
@@ -101,7 +102,7 @@ export class TypeGenerator {
 				const [__, method, operationId] = methodMatch
 				methodCount++
 
-				console.log(`  🔎 [${method.toUpperCase()}] ${path} (${operationId}) 분석 중...`)
+				logger.debug(`[${method.toUpperCase()}] ${path} (${operationId}) 분석 중...`)
 				const controllerName = operationId.split('_')[0]
 				generatedTypes.push(`//// ${controllerName}`, `// ${operationId}`)
 
@@ -235,7 +236,7 @@ export class TypeGenerator {
 									generatedTypes.push(`export type ${operationId}_Response = void;`)
 								} else {
 									// 5. 마지막 fallback
-									console.warn(`⚠️  ${operationId}: Response 타입을 추출할 수 없어 기본 타입으로 생성합니다.`)
+									logger.warn(`${operationId}: Response 타입을 추출할 수 없어 기본 타입으로 생성합니다.`)
 									generatedTypes.push(`export type ${operationId}_Response = any;`)
 								}
 							}
@@ -247,10 +248,10 @@ export class TypeGenerator {
 		}
 
 		if (pathCount % 10 === 0) {
-			console.log(`    처리된 path: ${pathCount}`)
+			logger.debug(`처리된 path: ${pathCount}`)
 		}
 
-		console.log(`  ✅ 총 처리된 paths: ${pathCount}, 생성된 타입: ${generatedTypes.length}`)
+		logger.info(`총 처리된 paths: ${pathCount}, 생성된 타입: ${generatedTypes.length}`)
 
 		// 중복된 컨트롤러 헤더 제거 및 정리
 		const finalTypes = []

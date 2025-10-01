@@ -13,6 +13,7 @@
  */
 
 import { readFileSync } from 'fs'
+import logger from '../utils/Logger.js'
 
 /**
  * TagsGenerator 클래스
@@ -98,7 +99,7 @@ export class TagsGenerator {
 			const pathsMatch = schemaContent.match(pathsRegex)
 
 			if (!pathsMatch) {
-				console.warn(`⚠️  ${schemaName}에서 paths를 찾을 수 없습니다`)
+				logger.warn(`${schemaName}에서 paths를 찾을 수 없습니다`)
 				return { tags, pathsData }
 			}
 
@@ -123,7 +124,7 @@ export class TagsGenerator {
 				}
 			}
 		} catch (error) {
-			console.error(`❌ ${schemaName} 태그 추출 오류:`, error.message)
+			logger.error(`${schemaName} 태그 추출 오류: ${error.message}`)
 		}
 
 		return { tags, pathsData }
