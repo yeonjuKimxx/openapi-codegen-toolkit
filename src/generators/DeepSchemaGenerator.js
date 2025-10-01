@@ -874,12 +874,46 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 /**
- * DeepSchemaGenerator 헬퍼 함수
+ * Generator 호환 래퍼 클래스
  */
-export function createDeepSchemaGenerator(config, pathResolver, naming) {
-	// DeepSchemaTypeExtractor는 이미 독립적으로 작동하므로 그대로 export
-	return DeepSchemaTypeExtractor
+export class DeepSchemaGenerator {
+	constructor(config, pathResolver, importResolver, naming) {
+		this.config = config
+		this.pathResolver = pathResolver
+		this.importResolver = importResolver
+		this.naming = naming
+	}
+
+	/**
+	 * Generator 인터페이스 호환 메서드
+	 */
+	async generate(serverName) {
+		const schemaFilePath = this.pathResolver.getSchemaPath(serverName)
+		const outputPath = this.pathResolver.resolvePath(
+			this.config.fileGeneration.domainTypes + '/' + (this.config.fileGeneration?.files?.deepSchema || 'deepSchema.ts'),
+			{ serverName }
+		)
+
+		const extractor = new DeepSchemaTypeExtractor(serverName)
+		const schemaContent = readFileSync(schemaFilePath, 'utf-8')
+
+		// 모든 스키마 파싱
+		extractor.parseAllSchemas(schemaContent)
+		const schemaNames = Array.from(extractor.allSchemas.keys())
+
+		// 통합 파일 생성
+		const consolidatedContent = await generateConsolidatedDeepSchemaFile(extractor, schemaNames, serverName)
+
+		return consolidatedContent
+	}
 }
 
-export { DeepSchemaTypeExtractor as DeepSchemaGenerator }
-export default DeepSchemaTypeExtractor
+/**
+ * DeepSchemaGenerator 헬퍼 함수
+ */
+export function createDeepSchemaGenerator(config, pathResolver, importResolver, naming) {
+	return new DeepSchemaGenerator(config, pathResolver, importResolver, naming)
+}
+
+export { DeepSchemaTypeExtractor }
+export default DeepSchemaGenerator
