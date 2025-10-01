@@ -135,7 +135,7 @@ program
 				console.log('1. openapi-codegen.config.json 파일을 프로젝트에 맞게 수정하세요')
 				console.log('2. .env 파일에 OpenAPI 서버 URL을 추가하세요')
 				console.log('   예: NEXT_PUBLIC_STEPIN_AUTH=https://api.example.com')
-				console.log('3. npx @stepin/openapi-codegen generate 명령어로 코드를 생성하세요')
+				console.log('3. npx openapi-codegen generate 명령어로 코드를 생성하세요')
 			}
 		} catch (error) {
 			console.error('❌ 초기화 실패:', error.message)
@@ -183,7 +183,7 @@ program
 	.command('info')
 	.description('패키지 정보 표시')
 	.action(() => {
-		console.log('\n📦 @stepin/openapi-codegen')
+		console.log('\n📦 openapi-codegen')
 		console.log(`버전: ${packageJson.version}`)
 		console.log(`설명: ${packageJson.description}`)
 		console.log(`라이센스: ${packageJson.license}`)
@@ -206,17 +206,17 @@ program
 	.action(() => {
 		console.log('\n📚 사용 예시:\n')
 		console.log('1. 프로젝트 초기화:')
-		console.log('   $ npx @stepin/openapi-codegen init --type nextjs\n')
+		console.log('   $ npx openapi-codegen init --type nextjs\n')
 		console.log('2. 모든 서버 코드 생성:')
-		console.log('   $ npx @stepin/openapi-codegen generate\n')
+		console.log('   $ npx openapi-codegen generate\n')
 		console.log('3. 특정 서버만 생성:')
-		console.log('   $ npx @stepin/openapi-codegen generate --server auth\n')
+		console.log('   $ npx openapi-codegen generate --server auth\n')
 		console.log('4. 특정 단계만 실행:')
-		console.log('   $ npx @stepin/openapi-codegen generate --steps types,api\n')
+		console.log('   $ npx openapi-codegen generate --steps types,api\n')
 		console.log('5. 설정 파일 검증:')
-		console.log('   $ npx @stepin/openapi-codegen validate\n')
+		console.log('   $ npx openapi-codegen validate\n')
 		console.log('6. 시뮬레이션 (dry-run):')
-		console.log('   $ npx @stepin/openapi-codegen generate --dry-run\n')
+		console.log('   $ npx openapi-codegen generate --dry-run\n')
 		console.log('')
 	})
 
